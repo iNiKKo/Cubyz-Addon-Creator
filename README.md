@@ -9,8 +9,7 @@ A web-based tool for creating and managing addons for the game Cubyz.
 
 ## Core Logic
 
-| File | Primary Role |
-| **app-core.js** | Setup & Initialization |
-| **app-io.js** | Import Handling |
-| **app-save.js** | Export Handling |
-| **app-studio.js** | Interface Control |
+* **app-core.js**: Setup & Initialization
+* **app-io.js**: Import Handling
+* **app-save.js**: Export Handling
+* **app-studio.js**: Interface Control
