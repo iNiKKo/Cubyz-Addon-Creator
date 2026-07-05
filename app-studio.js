@@ -625,10 +625,15 @@ window.updateBlockFacePreviews = function() {
 
 window.handleCustomEntityModel = function(inputElement, targetSearchId) {
     if (inputElement.files?.[0]) {
-        const name = inputElement.files[0].name.replace('.glb', '').toLowerCase().replace(/[^a-z0-9_]/g, "");
-        if (!window.serverEntityModels) window.serverEntityModels = [];
-        if (!window.serverEntityModels.includes(name)) window.serverEntityModels.unshift(name);
-        document.getElementById(targetSearchId).value = name;
+        const file = inputElement.files[0];
+        const addonName = document.getElementById('addonName')?.value || 'my_addon';
+        const name = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9_]/g, "");
+
+        document.getElementById(targetSearchId).value = `${addonName}:${name}`;
+
+        if (!window.customEntityModels) window.customEntityModels = {};
+        window.customEntityModels[`${addonName}:${name}`] = file;
+
         window.markFormAsDirty();
     }
 };
@@ -636,11 +641,25 @@ window.handleCustomEntityModel = function(inputElement, targetSearchId) {
 window.handleCustomEntityTexture = async function(inputElement, targetSearchId) {
     if (inputElement.files?.[0]) {
         const file = inputElement.files[0];
-        const name = 'entityModels/textures/' + file.name.replace('.png', '').toLowerCase().replace(/[^a-z0-9_]/g, "");
-        const url = await new Promise(r => { const rd = new FileReader(); rd.onloadend = () => r(rd.result); rd.readAsDataURL(file); });
+        const addonName = document.getElementById('addonName')?.value || 'my_addon';
+        const name = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9_]/g, "");
+        const texturePath = `entityModels/textures/${name}`;
 
-        window.serverTextures.unshift({ name, dataUrl: url, isCustom: true, isBlockType: false, isEntityType: true, rawFile: file });
-        document.getElementById(targetSearchId).value = name.replace('entityModels/textures/', '');
+        const url = await new Promise(r => {
+            const rd = new FileReader();
+            rd.onloadend = () => r(rd.result);
+            rd.readAsDataURL(file);
+        });
+
+        window.serverTextures.unshift({
+            name: texturePath,
+            dataUrl: url,
+            isCustom: true,
+            isBlockType: false,
+            isEntityType: true
+        });
+
+        document.getElementById(targetSearchId).value = name;
         window.updateBlockFacePreviews();
         window.markFormAsDirty();
     }

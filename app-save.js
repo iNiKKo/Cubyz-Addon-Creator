@@ -338,8 +338,9 @@ async function exportFullAddon() {
     const addonFolder = zip.folder(addonName);
 
     const folders = {};
-    ["blocks", "items", "biomes", "entityModels", "particles", "blocks/textures", "items/textures", "entityModels/textures", "particles/textures", "models", "world_presets", "tools", "structure_tables", "sbb", "recipes"].forEach(f => {
-        folders[f] = addonFolder.folder(f);
+    ["blocks", "items", "biomes", "entityModels", "particles", "blocks/textures", "items/textures", "entityModels/textures", "particles/textures", "entityModels/models", "world_presets", "tools", "structure_tables", "sbb", "recipes"].forEach(f => {
+        const key = f === "entityModels/models" ? "models" : f;
+        folders[key] = addonFolder.folder(f);
     });
 
     const packs = { block: [], item: [], entity: [], particle: [] };
@@ -531,15 +532,20 @@ async function exportFullAddon() {
         if (window.projectData.entities) {
             window.projectData.entities.forEach(ent => {
                 if (window.deletedAddonElements?.entities?.includes(ent.id)) return;
+
                 let tagStr = ent.tags.map(t => `\n        .${t},`).join('');
-                folders["entityModels"].file(`${ent.id}.zig.zon`, `.{\n${ent.tags.length ? `    .tags = .{${tagStr}\n    },\n` : ""}` +
-                `    .model = "${ent.model.includes(':') ? ent.model : 'cubyz:' + ent.model}",\n` +
-                `    .defaultTexture = "${ent.defaultTexture.includes(':') ? ent.defaultTexture : 'cubyz:' + ent.defaultTexture}",\n` +
+
+                const cleanModel = ent.model.includes(':') ? ent.model.split(':').pop() : ent.model;
+                const cleanTex = ent.defaultTexture.includes(':') ? ent.defaultTexture.split(':').pop() : ent.defaultTexture;
+
+                folders["entityModels"].file(`${ent.id.split(':').pop()}.zig.zon`, `.{\n${ent.tags.length ? `    .tags = .{${tagStr}\n    },\n` : ""}` +
+                `    .model = "${addonName}:${cleanModel}",\n` +
+                `    .defaultTexture = "${addonName}:${cleanTex}",\n` +
                 `    .height = ${parseFloat(ent.height || 2.0).toFixed(1)},\n` +
                 `    .coordinateSystem = ${ent.coordinateSystem || '.right_handed_z_up'},\n}`);
 
                 if (ent.defaultTexture) {
-                    const m = window.serverTextures.find(t => t.name === 'entityModels/textures/' + ent.defaultTexture || t.name === ent.defaultTexture);
+                    const m = window.serverTextures.find(t => t.name === 'entityModels/textures/' + cleanTex || t.name === cleanTex || t.name === ent.defaultTexture);
                     if (m) packs.entity.push(m);
                 }
             });
@@ -581,7 +587,14 @@ async function exportFullAddon() {
                 }
             }
         };
+        if (window.customEntityModels) {
+            for (const [fullKey, fileObject] of Object.entries(window.customEntityModels)) {
+                const cleanFileName = fullKey.includes(':') ? fullKey.split(':').pop() : fullKey;
+                const fileExt = fileObject.name.includes('.') ? '.' + fileObject.name.split('.').pop() : '.obj';
 
+                folders["models"].file(`${cleanFileName}${fileExt}`, fileObject);
+            }
+        }
         await writeTex(unq('block'), folders["blocks/textures"], false);
         await writeTex(unq('item'), folders["items/textures"], true);
         await writeTex(unq('entity'), folders["entityModels/textures"], true);

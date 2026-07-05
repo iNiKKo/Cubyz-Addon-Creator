@@ -177,22 +177,18 @@ async function importExistingAddon(input) {
                     }
                 });
 
-            } else if (path.includes('/entityModels/') && path.endsWith('.zig.zon')) {
+            } else if (path.includes('/entityModels/models/') && path.endsWith('.zig.zon')) {
                 const content = await zipEntry.async("string");
-                let parsedTags = [];
-                const tagsMatch = content.match(/\.tags\s*=\s*\.\{\s*([\s\S]*?)\}/);
-                if (tagsMatch) {
-                    parsedTags = tagsMatch[1].split(',')
-                        .map(t => t.trim().replace(/^\./, ''))
-                        .filter(t => t.length > 0);
-                }
+                const nameToken = path.split('/').pop().replace('.zig.zon', '');
+
+                const addonName = document.getElementById('addonName').value;
 
                 window.projectData.entities.push({
-                    id: nameToken,
+                    id: `${addonName}:${nameToken}`,
                     height: extractVal(content, 'height', '2.0'),
                     coordinateSystem: content.includes('.coordinateSystem = .left_handed_y_up') ? '.left_handed_y_up' : '.right_handed_z_up',
-                    model: extractVal(content, 'model', '').replace(/^[^:]+:/, ''),
-                    defaultTexture: extractVal(content, 'defaultTexture', '').replace(/^[^:]+:/, ''),
+                    model: `${addonName}:${extractVal(content, 'model', '').split(':').pop()}`,
+                    defaultTexture: `${addonName}:${extractVal(content, 'defaultTexture', '').split(':').pop()}`,
                     tags: parsedTags
                 });
 
