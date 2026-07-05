@@ -1,11 +1,16 @@
-#  **Cubyz Addon Creator**
+# Cubyz Addon Creator
 
-## Tutorial
-**BASICS**
-Index.html is the main page
-"blocks.html,items.html,recipes.html,biomes.html,enities.html,particles.html" are panels on the main page(index.html)
+A web-based tool for creating and managing addons for the game Cubyz.
 
-app-core.js = Setup
-app-io.js = Import Handling
-app-save.js = Export Handling
-app-studio.js = Interface Control
+## File Structure
+
+* **Main Page**: `index.html`
+* **Panels**: `blocks.html`, `items.html`, `recipes.html`, `biomes.html`, `entities.html`, `particles.html` 
+
+## Core Logic
+
+| File | Primary Role |
+| **app-core.js** | Setup & Initialization |
+| **app-io.js** | Import Handling |
+| **app-save.js** | Export Handling |
+| **app-studio.js** | Interface Control |
