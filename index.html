@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cubyz Addon Creator</title>
+    <link class="style-link" rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app-core.js" defer></script>
+    <script src="app-studio.js" defer></script>
+    <script src="app-save.js" defer></script>
+    <script src="app-io.js" defer></script>
+</head>
+<body class="site-wrapper">
+
+<div class="container main-content">
+
+    <div class="panel toolbar-container-block">
+
+        <div class="toolbar-flex-row border-split">
+            <h2 class="toolbar-main-title" style="display: inline-flex; align-items: center; gap: 10px;">
+                Cubyz Addon Creator
+                <span class="app-version-indicator" style="font-size: 11px; background: #2d2d2d; color: #888; border: 1px solid #3c3c3c; padding: 2px 6px; border-radius: 4px; font-weight: normal; vertical-align: middle;">v0.1.5</span>
+            </h2>
+
+            <div class="toolbar-metrics-side" style="position: relative;">
+                <span class="status-header-label" style="display: block; text-align: right;">Database Metrics</span>
+                <div id="folderStatus" class="status-container metrics-expand-btn" onclick="window.toggleMetricsPanel()" style="cursor: pointer; display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 4px;">
+                    <span class="status-pill version-active">Connecting...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar-flex-row">
+            <div class="form-group inline-name-field">
+                <label for="addonName">Addon Name <span class="hint-text">(lower-case only)</span></label>
+                <input type="text" id="addonName" value="" autocomplete="off" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '')">
+            </div>
+
+            <div class="toolbar-buttons-side">
+                <label class="btn-secondary import-label-btn">
+                    Import Addon (.ZIP)
+                    <input type="file" id="importAddonFile" accept=".zip" style="display: none;" onchange="importExistingAddon(this)">
+                </label>
+                <button type="button" class="btn-primary toolbar-btn" onclick="exportFullAddon()">Export Addon (.ZIP)</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 10px;">
+
+        <div id="projectSidebar" class="panel" style="width: 320px; min-width: 320px; box-sizing: border-box; padding: 15px; background: #161616; margin-bottom: 0;">
+            <h3 style="margin-top: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #888; padding-bottom: 8px; border-bottom: 1px solid #2d2d2d;">Project Explorer</h3>
+
+            <div style="margin-top: 15px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Blocks</div>
+                <div id="sidebarBlocksTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Items</div>
+                <div id="sidebarItemsTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Recipes</div>
+                <div id="sidebarRecipesTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Biomes</div>
+                <div id="sidebarBiomesTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Entities</div>
+                <div id="sidebarEntitiesTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div style="font-weight: bold; font-size: 13px; color: #aaa; margin-bottom: 5px;">Particles</div>
+                <div id="sidebarParticlesTree" style="display: flex; flex-direction: column; gap: 4px; padding-left: 10px; font-size: 13px; color: #eee; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+                    <span style="color: #666; font-style: italic;">None saved yet</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+
+            <div class="nav-bar" style="margin-bottom: 15px;">
+                <button class="nav-btn" onclick="loadStudioPanel('blocks', this)">Blocks</button>
+                <button class="nav-btn" onclick="loadStudioPanel('items', this)">Items</button>
+                <button class="nav-btn" onclick="loadStudioPanel('recipes', this)">Recipes</button>
+                <button class="nav-btn" onclick="loadStudioPanel('biomes', this)">Biomes</button>
+                <button class="nav-btn" onclick="loadStudioPanel('entities', this)">Entities</button>
+                <button class="nav-btn" onclick="loadStudioPanel('particles', this)">Particles</button>
+            </div>
+
+            <div id="dynamicWorkspace">
+                <div class="panel"><p>↑ Select a category to get started! ↑</p></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<footer class="app-footer">
+    Cubyz Addon Creator - by iNiKKo
+</footer>
+<div id="customConfirmModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-box">
+        <h3 id="customConfirmTitle" class="custom-modal-title">Unsaved Changes</h3>
+        <p id="customConfirmMessage" class="custom-modal-message">You have unsaved changes! Discard and switch panels?</p>
+        <div class="custom-modal-actions">
+            <button type="button" id="customConfirmCancelBtn" class="btn-secondary modal-btn">Cancel</button>
+            <button type="button" id="customConfirmOkBtn" class="btn-primary modal-btn">Discard</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
