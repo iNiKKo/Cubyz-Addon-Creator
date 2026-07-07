@@ -186,6 +186,7 @@ function markFormAsDirty() {
     if (typeof window.updateSidebarProjectTree === 'function') window.updateSidebarProjectTree();
 }
 window.markFormAsDirty = markFormAsDirty;
+
 window.renderDropdownOptions = (dropdownId, searchId) => {
     const dropdown = document.getElementById(dropdownId);
     if (!dropdown) return;
@@ -228,13 +229,27 @@ window.rebuildDropdowns = () => {
     ['top', 'front', 'left', 'right', 'up', 'bottom', 'itemIcon', 'itemTexture', 'particleTexture'].forEach(side => {
         window.renderDropdownOptions(`${side}Dropdown`, `${side}Search`);
     });
+
+    const partInput = document.getElementById('particleTextureSearch');
+    if (partInput) {
+        partInput.onfocus = () => {
+            document.querySelectorAll('.dropdown-options').forEach(d => d.style.display = 'none');
+            const dropdown = document.getElementById('particleTextureDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'block';
+                window.filterDropdown('particleTextureSearch', 'particleTextureDropdown');
+            }
+        };
+        partInput.oninput = () => window.filterDropdown('particleTextureSearch', 'particleTextureDropdown');
+    }
+
     if (typeof window.renderDropOptions === 'function') window.renderDropOptions();
     window.dropdownsGenerated = true;
 };
-window.deletedAddonElements = { blocks: [], items: [], recipes: [], biomes: [], entities: [], particles: [] };
 
+window.deletedAddonElements = { blocks: [], items: [], recipes: [], biomes: [], entities: [], particles: [] };
 window.updateSidebarProjectTree = function() {
-    const panels = { blocks: '📦', items: '💎', biomes: '🌍', entities: '👾', particles: '✨' };
+    const panels = { blocks: '', items: '', biomes: '', entities: '', particles: '' };
 
     Object.keys(panels).forEach(pName => {
         const cont = document.getElementById(`sidebar${pName.charAt(0).toUpperCase() + pName.slice(1)}Tree`);
@@ -250,13 +265,14 @@ window.updateSidebarProjectTree = function() {
                 <div onclick="loadStudioPanel('${pName}', null, '${item.id}')" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px;">
                 ${panels[pName]} ${sub}${item.id}
                 </div>
+                <span class="delete-sidebar-item" onclick="window.deleteItemFromProject('${pName}', '${item.id}', event)" style="color: #ff5555; font-weight: bold; padding: 0 6px; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0000'" onmouseout="this.style.color='#ff5555'">×</span>
                 </div>`;
             }).join('');
         }
 
         if (window.hasUnsavedChanges && window.currentPanelName === pName) {
             const cur = document.getElementById(`${pName.slice(0, -1)}Id`)?.value.trim() || 'new_element';
-            cont.innerHTML += `<div style="padding: 4px 6px; background: #2c251e; border-radius: 3px; border-left: 3px solid #ff9800; color: #ff9800;">✍️ ${cur} <span style="font-size:10px; float:right;">●</span></div>`;
+            cont.innerHTML += `<div style="padding: 4px 6px; background: #2c251e; border-radius: 3px; border-left: 3px solid #ff9800; color: #ff9800;"> ${cur} <span style="font-size:10px; float:right;">●</span></div>`;
         }
     });
 
@@ -265,12 +281,151 @@ window.updateSidebarProjectTree = function() {
         const recKeys = Object.keys(window.projectData.recipes || {});
         if (!recKeys.length) recCont.innerHTML = '<span style="color: #666; font-style: italic;">None saved yet</span>';
         else {
-            recCont.innerHTML = recKeys.map(k => `<div class="sidebar-tree-row" style="display: flex; padding: 4px 6px; background: #222; border-radius: 3px; margin-bottom: 2px; cursor: pointer;" onclick="loadStudioPanel('recipes', null, '${k}')">📜 ${k}</div>`).join('');
+            recCont.innerHTML = recKeys.map(k => `
+            <div class="sidebar-tree-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; background: #222; border-radius: 3px; margin-bottom: 2px; cursor: pointer;">
+            <div onclick="loadStudioPanel('recipes', null, '${k}')" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px;"> ${k}</div>
+            <span class="delete-sidebar-item" onclick="window.deleteItemFromProject('recipes', '${k}', event)" style="color: #ff5555; font-weight: bold; padding: 0 6px; font-size: 14px; cursor: pointer;" onmouseover="this.style.color='#ff0000'" onmouseout="this.style.color='#ff5555'">×</span>
+            </div>
+            `).join('');
         }
         if (window.hasUnsavedChanges && window.currentPanelName === 'recipes') {
             const curRec = document.getElementById('recipeFilename')?.value.trim() || 'new_recipe';
-            recCont.innerHTML += `<div style="padding: 4px 6px; background: #2c251e; border-radius: 3px; border-left: 3px solid #ff9800; color: #ff9800;">✍️ ${curRec} <span style="font-size:10px; float:right;">●</span></div>`;
+            recCont.innerHTML += `<div style="padding: 4px 6px; background: #2c251e; border-radius: 3px; border-left: 3px solid #ff9800; color: #ff9800;"> ${curRec} <span style="font-size:10px; float:right;"></span></div>`;
         }
     }
 };
+
+window.deleteItemFromProject = async function(pName, elementId, event) {
+    if (event) event.stopPropagation(); // Avoid loading the module pane up into workspace view
+
+    const confirmed = await window.showCustomConfirm(
+        "Confirm Asset Deletion",
+        `Are you sure you want to completely remove "${elementId}" from project?`
+    );
+    if (!confirmed) return;
+
+    if (pName === 'recipes') {
+        if (window.projectData.recipes) delete window.projectData.recipes[elementId];
+    } else {
+        window.projectData[pName] = (window.projectData[pName] || []).filter(item => item.id !== elementId);
+    }
+
+    if (!window.deletedAddonElements) window.deletedAddonElements = {};
+    if (!window.deletedAddonElements[pName]) window.deletedAddonElements[pName] = [];
+    window.deletedAddonElements[pName].push(elementId);
+
+    if (window.editingId === elementId && window.currentPanelName === pName) {
+        window.editingId = null;
+        window.hasUnsavedChanges = false;
+        document.getElementById('dynamicWorkspace').innerHTML = '<p style="color:#888; text-align:center; margin-top:40px;">Asset deleted. Select an alternative row node from the panel map explorer.</p>';
+    }
+
+    window.updateSidebarProjectTree();
+    if (typeof window.updateSearchableItems === 'function') window.updateSearchableItems();
+};
+
+window.showRecipeDropdown = function(dropdownId, searchId, filterType) {
+    document.querySelectorAll('.dropdown-options').forEach(d => d.style.display = 'none');
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
+
+    dropdown.innerHTML = '';
+    dropdown.style.display = 'block';
+
+    let validationItems = [];
+    if (filterType === 'blocks') {
+        validationItems = window.allSearchableItems.filter(item => !item.startsWith('cubyz:music'));
+    } else if (filterType === 'music') {
+        validationItems = window.serverMusicList || [];
+    } else if (filterType === 'models') {
+        const addonName = document.getElementById('addonName')?.value || 'my_addon';
+        const serverModels = (window.serverEntityModels || []).map(m => `cubyz:${m}`);
+        const customModels = Object.keys(window.customEntityModels || {});
+        validationItems = [...customModels, ...serverModels];
+    } else if (filterType === 'textures') {
+        validationItems = (window.serverTextures || [])
+        .filter(t => t.isEntityType)
+        .map(t => t.name.replace('entityModels/textures/', ''));
+    }
+
+    validationItems.forEach(item => {
+        const opt = document.createElement('div');
+        opt.className = 'dropdown-option';
+        opt.style = 'padding: 6px 12px; cursor: pointer; color: #fff;';
+        opt.textContent = item;
+
+        opt.onmousedown = (e) => {
+            e.preventDefault();
+            const input = document.getElementById(searchId);
+            if (input) {
+                input.value = item;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            dropdown.style.display = 'none';
+            if (typeof window.updateBlockFacePreviews === 'function') window.updateBlockFacePreviews();
+        };
+            dropdown.appendChild(opt);
+    });
+
+    window.filterDropdown(searchId, dropdownId);
+};
+
+window.filterDropdown = function(searchId, dropdownId) {
+    const input = document.getElementById(searchId);
+    const dropdown = document.getElementById(dropdownId);
+    if (!input || !dropdown) return;
+
+    const filter = input.value.toLowerCase().trim();
+    const options = dropdown.querySelectorAll('.dropdown-option');
+    let dynamicVisibleCount = 0;
+
+    options.forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        if (text.includes(filter)) {
+            opt.style.display = 'flex';
+            dynamicVisibleCount++;
+        } else {
+            opt.style.display = 'none';
+        }
+    });
+
+    dropdown.style.display = dynamicVisibleCount > 0 ? 'block' : 'none';
+};
+
+window.renderDropOptions = function() {
+    const targets = [
+        { id: 'recipeOutputSearch', type: 'blocks' },
+        { id: 'recipeInputSearch1', type: 'blocks' },
+        { id: 'recipeInputSearch2', type: 'blocks' },
+        { id: 'recipeInputSearch3', type: 'blocks' },
+        { id: 'recipeInputSearch4', type: 'blocks' },
+        { id: 'bioMusic', type: 'music' },
+        { id: 'bioSurfaceBlock', type: 'blocks' },
+        { id: 'bioSubBlock', type: 'blocks' },
+        { id: 'bioStoneBlock', type: 'blocks' },
+        { id: 'entityModelSearch', type: 'models' },
+        { id: 'entityTextureSearch', type: 'textures' }
+    ];
+
+    targets.forEach(t => {
+        const input = document.getElementById(t.id);
+        if (!input) return;
+
+        const wrapper = input.closest('.texture-select-wrapper');
+        if (!wrapper) return;
+
+        let dropdown = wrapper.querySelector('.dropdown-options');
+        if (!dropdown) {
+            dropdown = document.createElement('div');
+            dropdown.id = t.id + 'Dropdown';
+            dropdown.className = 'dropdown-options';
+            wrapper.appendChild(dropdown);
+        }
+
+        input.onfocus = () => window.showRecipeDropdown(dropdown.id, t.id, t.type);
+        input.oninput = () => window.filterDropdown(t.id, dropdown.id);
+    });
+};
+
 document.addEventListener("DOMContentLoaded", loadServerAssets);

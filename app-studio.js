@@ -157,63 +157,6 @@ window.handleSimpleEnvChange = function(val) {
     if (!window.isInitializingPanel) window.markFormAsDirty();
 };
 
-window.handleRotationChange = function(val) {
-    const fb = document.getElementById('hasItemIcon');
-    if (fb) {
-        fb.checked = val === 'cubyz:ore' ? true : fb.checked;
-        fb.disabled = val === 'cubyz:ore';
-        if (typeof window.toggleItemIconInput === 'function') window.toggleItemIconInput(fb);
-    }
-
-    if (!window.isInitializingPanel) {
-        const setCheck = (id, state) => { const el = document.getElementById(id); if (el) el.checked = state; };
-        if (val === 'cubyz:decayable') {
-            ['blockTransparent', 'blockDegradable', 'blockViewThrough', 'blockAlwaysViewThrough', 'blockHasBackFace'].forEach(id => setCheck(id, true));
-            setCheck('blockAllowOres', false);
-        } else if (val === 'cubyz:ore' || val === 'cubyz:stairs') {
-            ['blockTransparent', 'blockDegradable', 'blockViewThrough', 'blockAlwaysViewThrough', 'blockHasBackFace'].forEach(id => setCheck(id, false));
-            setCheck('blockAllowOres', val === 'cubyz:ore');
-        }
-    }
-
-    const container = document.getElementById('simpleEnvDropdown');
-    const envVal = document.getElementById('simpleEnvPreset');
-    const envSrc = document.getElementById('simpleEnvPresetSearch');
-
-    if (container && envVal && envSrc) {
-        container.innerHTML = '';
-        const addOpt = (v, txt) => {
-            const opt = document.createElement('div');
-            opt.className = 'dropdown-option';
-            opt.style = 'padding: 6px 12px; cursor: pointer;';
-            opt.textContent = txt;
-            opt.onmousedown = (e) => {
-                e.preventDefault();
-                envVal.value = v;
-                envSrc.value = txt;
-                window.handleSimpleEnvChange(v);
-                container.style.display = 'none';
-            };
-            container.appendChild(opt);
-        };
-
-        if (val === 'cubyz:stairs' || val === 'cubyz:ore') {
-            addOpt('none', 'Default'); addOpt('support', 'Breaks if ground below is gone');
-        } else if (val === 'cubyz:decayable') {
-            addOpt('decay', 'Decays into air if away from logs'); addOpt('none', 'Default');
-        } else if (val === 'cubyz:hanging') {
-            addOpt('vine_decay', 'Breaks if ceiling disappears'); addOpt('none', 'Default');
-        } else {
-            addOpt('none', 'Default'); addOpt('support', 'Breaks if ground below is gone');
-        }
-
-        const isDecay = val === 'cubyz:decayable';
-        envVal.value = isDecay ? 'decay' : 'none';
-        envSrc.value = isDecay ? 'Decays into air if away from logs' : 'Default';
-        window.handleSimpleEnvChange(envVal.value);
-    }
-};
-
 window.addDynamicTagPill = function(containerId, inputId, tag) {
     const container = document.getElementById(containerId);
     const input = document.getElementById(inputId);
@@ -324,6 +267,14 @@ async function loadStudioPanel(panelName, buttonElement, targetIdToEdit = null) 
         }
 
         window.isInitializingPanel = false;
+
+        if (['recipes', 'biomes', 'entities', 'particles'].includes(panelName)) {
+            if (typeof window.renderDropOptions === 'function') window.renderDropOptions();
+        }
+        if (panelName === 'particles') {
+            if (typeof window.rebuildDropdowns === 'function') window.rebuildDropdowns();
+        }
+
         if (typeof window.initDropdownClearButtons === 'function') window.initDropdownClearButtons();
         window.updateSidebarProjectTree();
     } catch (err) {
@@ -415,7 +366,6 @@ window.populateRecipeFormValues = function(filename) {
         let inClean = inp || "", inCount = 1;
         if (inp) {
             let inM = inp.match(/^(\d+)\s+(.+)$/);
-            // FIXED: Reference target changed from 'm' to 'inM' to stop engine crashes
             if (inM) { inCount = inM[1]; inClean = inM[2]; }
             if (inClean.includes(':')) inClean = inClean.split(':')[1];
         }
@@ -741,63 +691,14 @@ window.toggleStructSubFields = function(rowId, type, data = null) {
     } else if (type === 'cubyz:boulder') {
         wrapper.innerHTML = createInputHTML('Stone Block Variant', 'field-block', data?.block, 'cubyz:slate/cobble', rowId+'_boDrop', rowId+'_boIn') + createNormalInputHTML('Base Radius Size', 'field-size', data?.size, '5') + createNormalInputHTML('Size Variance Step', 'field-size-var', data?.size_variance, '4');
     } else if (type === 'cubyz:ground_patch') {
-        // FIXED: Reference changed from 'd' to 'data' to keep biome structures editing working
         wrapper.innerHTML = createInputHTML('Replacement Block', 'field-block', data?.block, 'cubyz:gravel', rowId+'_gpDrop', rowId+'_gpIn') + createNormalInputHTML('Patch Width', 'field-width', data?.width, '5') + createNormalInputHTML('Patch Depth layers', 'field-depth', data?.depth, '2') + createNormalInputHTML('Edge Smoothness (0-1)', 'field-smoothness', data?.smoothness, '0.2');
     } else if (type === 'cubyz:fallen_tree') {
         wrapper.innerHTML = createInputHTML('Log Block Type', 'field-log', data?.log, 'cubyz:oak_log', rowId+'_ftDrop', rowId+'_ftIn') + createNormalInputHTML('Log Length size', 'field-height', data?.height, '6') + createNormalInputHTML('Length Variance', 'field-height-var', data?.height_variation, '3');
     } else if (type === 'cubyz:sbb') {
         wrapper.innerHTML = createNormalInputHTML('SBB Asset path ID', 'field-structure', data?.structure, 'cubyz:tree/coniferous/pine/loblolly') + createNormalInputHTML('Place Mode flag', 'field-placemode', data?.placeMode, '.degradable');
     }
-window.handleSimpleTouchChange = function(val) {
-    const rawTouch = document.getElementById('logicTouchType');
-    const rawMode = document.getElementById('logicTouchMode');
-    const settingsSub = document.getElementById('simpleTouchSettings');
-    if (!rawTouch) return;
 
-    if (val === 'none') {
-        rawTouch.value = 'none';
-        if (settingsSub) settingsSub.style.display = 'none';
-    } else {
-        rawTouch.value = 'hurt';
-        rawMode.value = val;
-        if (settingsSub) settingsSub.style.display = 'block';
-        const variantDropdown = document.getElementById('logicTouchTypeVariant');
-        if (variantDropdown) variantDropdown.value = (val === 'heal') ? 'heal' : 'heat';
-    }
-    if (!window.isInitializingPanel) window.markFormAsDirty();
-};
-
-window.handleSimpleInteractChange = function(val) {
-    const rawInteract = document.getElementById('logicInteractType');
-    const settingsSub = document.getElementById('advInteractWindowWrapper');
-    if (!rawInteract) return;
-    rawInteract.value = val;
-    if (settingsSub) settingsSub.style.display = (val === 'open_window') ? 'block' : 'none';
-    if (!window.isInitializingPanel) window.markFormAsDirty();
-};
-
-window.handleSimpleEnvChange = function(val) {
-    const rawUpdate = document.getElementById('logicUpdateType');
-    const decaySub = document.getElementById('simpleDecaySettings');
-    if (!rawUpdate) return;
-
-    if (val === 'none') {
-        rawUpdate.value = 'none';
-        if (decaySub) decaySub.style.display = 'none';
-    } else if (val === 'support') {
-        rawUpdate.value = 'checkSupportBlocks';
-        if (decaySub) decaySub.style.display = 'none';
-    } else {
-        rawUpdate.value = val;
-        if (decaySub) {
-            decaySub.style.display = (val === 'decay') ? 'block' : 'none';
-            if (val === 'decay') {
-                document.getElementById('decayReplacement').value = "cubyz:air";
-                document.getElementById('decayPrevention').value = ".log, .branch";
-            }
-        }
-    }
-    if (!window.isInitializingPanel) window.markFormAsDirty();
+    wrapper.querySelectorAll('input, select').forEach(input => input.addEventListener('input', () => { if (!window.isInitializingPanel) window.markFormAsDirty(); }));
 };
 
 window.initDropdownClearButtons = function() {
@@ -851,5 +752,3 @@ document.addEventListener('mousedown', e => {
         document.querySelectorAll('.dropdown-options').forEach(d => d.style.display = 'none');
     }
 });
-    wrapper.querySelectorAll('input, select').forEach(input => input.addEventListener('input', () => { if (!window.isInitializingPanel) window.markFormAsDirty(); }));
-};
