@@ -27,6 +27,8 @@ function saveBlockToProject() {
     };
     for (let i = 6; i <= 15; i++) sidesData[`tex${i}`] = document.getElementById(`tex${i}`)?.value.trim() || "";
 
+    const interactMode = document.getElementById('logicInteractType')?.value || "none";
+
     const blockData = {
         id: blockId,
         subFolder: window.projectData.blocks.find(b => b.id === blockId)?.subFolder || "",
@@ -56,6 +58,9 @@ function saveBlockToProject() {
         hasItemIcon: document.getElementById('hasItemIcon').checked,
         itemIconSearch,
         baseTexture: tSearch,
+
+        ...(interactMode === 'open_chest' ? { blockEntity: "cubyz:chest" } : {}),
+
         callbacks: {
             touchType: document.getElementById('logicTouchType').value,
             touchMode: document.getElementById('logicTouchMode').value,
@@ -71,7 +76,7 @@ function saveBlockToProject() {
             tickReplaceBlock: document.getElementById('tickReplaceBlockSearch').value.trim(),
             breakType: document.getElementById('logicBreakType').value,
             breakReplaceBlock: document.getElementById('breakReplaceBlockSearch').value.trim(),
-            interactType: document.getElementById('logicInteractType').value,
+            interactType: interactMode,
             interactWindowName: document.getElementById('interactWindowName').value.trim()
         },
         sides: sidesData
@@ -378,6 +383,11 @@ async function exportFullAddon() {
         if (b.rotation !== "cubyz:ore") bZon += `    .collide = ${b.collide},\n    .transparent = ${b.transparent},\n`;
         if (b.emittedLight > 0) bZon += `    .emittedLight = ${b.emittedLight},\n`;
         if (b.absorbedLight !== undefined) bZon += `    .absorbedLight = ${b.absorbedLight},\n`;
+
+        if (b.blockEntity) {
+            bZon += `    .blockEntity = "${b.blockEntity}",\n`;
+        }
+
         if (b.rotation === "cubyz:ore") bZon += "    .ore = .{\n        .veins = 4.5,\n        .size = 20,\n        .maxHeight = -600,\n        .density = 0.25,\n    },\n";
 
         if (b.callbacks) {

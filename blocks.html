@@ -32,17 +32,19 @@
     </div>
 
     <div class="row">
-        <div class="form-group col-4" style="position: relative;">
-            <label for="blockRotation">Render Mode</label>
-            <input type="hidden" id="blockRotation" value="cubyz:stairs">
-            <input type="text" id="blockRotationSearch" value="3D Block (cubyz:stairs)" readonly style="cursor: pointer; background-color: #252526;" onfocus="document.getElementById('blockRotationDropdown').style.display='block'">
-            <div id="blockRotationDropdown" class="dropdown-options" style="display: none; position: absolute; width: 100%; background: #1e1e1e; border: 1px solid #3c3c3c; z-index: 1000; box-sizing: border-box;">
-                <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:stairs'; document.getElementById('blockRotationSearch').value='3D Block (cubyz:stairs)'; window.handleRotationChange('cubyz:stairs'); document.getElementById('blockRotationDropdown').style.display='none';">3D Block (cubyz:stairs)</div>
-                <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:ore'; document.getElementById('blockRotationSearch').value='Placable Ore (cubyz:ore)'; window.handleRotationChange('cubyz:ore'); document.getElementById('blockRotationDropdown').style.display='none';">Placable Ore (cubyz:ore)</div>
-                <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:decayable'; document.getElementById('blockRotationSearch').value='Decayable / Leaf (cubyz:decayable)'; window.handleRotationChange('cubyz:decayable'); document.getElementById('blockRotationDropdown').style.display='none';">Decayable / Leaf (cubyz:decayable)</div>
-            </div>
+    <div class="form-group col-6" style="position: relative;">
+        <label for="blockRotation">Render Mode</label>
+        <input type="hidden" id="blockRotation" value="cubyz:stairs">
+        <input type="text" id="blockRotationSearch" value="3D Block (cubyz:stairs)" readonly style="cursor: pointer; background-color: #252526;" onfocus="document.getElementById('blockRotationDropdown').style.display='block'">
+        <div id="blockRotationDropdown" class="dropdown-options" style="display: none; position: absolute; width: 100%; background: #1e1e1e; border: 1px solid #3c3c3c; z-index: 1000; box-sizing: border-box;">
+            <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:stairs'; document.getElementById('blockRotationSearch').value='3D Block (cubyz:stairs)'; window.handleRotationChange('cubyz:stairs'); document.getElementById('blockRotationDropdown').style.display='none';">3D Block (cubyz:stairs)</div>
+            <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:ore'; document.getElementById('blockRotationSearch').value='Placable Ore (cubyz:ore)'; window.handleRotationChange('cubyz:ore'); document.getElementById('blockRotationDropdown').style.display='none';">Placable Ore (cubyz:ore)</div>
+            <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:decayable'; document.getElementById('blockRotationSearch').value='Decayable / Leaf (cubyz:decayable)'; window.handleRotationChange('cubyz:decayable'); document.getElementById('blockRotationDropdown').style.display='none';">Decayable / Leaf (cubyz:decayable)</div>
+            <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:carpet'; document.getElementById('blockRotationSearch').value='Flat Layer / Carpet (cubyz:carpet)'; window.handleRotationChange('cubyz:carpet'); document.getElementById('blockRotationDropdown').style.display='none';">Flat Layer / Carpet (cubyz:carpet)</div>
+            <div class="dropdown-option" style="padding: 6px 12px; cursor: pointer;" onmousedown="document.getElementById('blockRotation').value='cubyz:direction'; document.getElementById('blockRotationSearch').value='Directional Log (cubyz:direction)'; window.handleRotationChange('cubyz:direction'); document.getElementById('blockRotationDropdown').style.display='none';">Directional Log (cubyz:direction)</div>
         </div>
     </div>
+</div>
 
     <div class="row" style="background: #252526; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 4px; gap: 30px; flex-wrap: wrap;">
         <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; margin: 0; cursor: pointer;">

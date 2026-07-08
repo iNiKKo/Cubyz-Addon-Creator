@@ -309,12 +309,14 @@ button {
     box-sizing: border-box;
     padding: 10px 12px;
     line-height: 1.4;
+    min-width: max-content;
 }
 .dropdown-option {
     display: flex;
     align-items: center;
     padding: 8px;
     cursor: pointer;
+    white-space: nowrap;
 }
 .dropdown-option:hover { background-color: #3e3e42; }
 .texture-icon {

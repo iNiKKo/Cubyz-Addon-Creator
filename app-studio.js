@@ -38,12 +38,14 @@ window.handleRotationChange = function(val) {
             container.appendChild(opt);
         };
 
-        if (val === 'cubyz:stairs' || val === 'cubyz:ore') {
+        if (val === 'cubyz:stairs' || val === 'cubyz:ore' || val === 'cubyz:direction') {
             addOpt('none', 'Default'); addOpt('support', 'Breaks if ground below is gone');
         } else if (val === 'cubyz:decayable') {
             addOpt('decay', 'Decays into air if away from logs'); addOpt('none', 'Default');
         } else if (val === 'cubyz:hanging') {
             addOpt('vine_decay', 'Breaks if ceiling disappears'); addOpt('none', 'Default');
+        } else if (val === 'cubyz:carpet') {
+            addOpt('support', 'Breaks if ground below is gone'); addOpt('none', 'Default');
         } else {
             addOpt('none', 'Default'); addOpt('support', 'Breaks if ground below is gone');
         }
@@ -770,6 +772,64 @@ window.initDropdownClearButtons = function() {
             input.addEventListener('input', toggle); input.addEventListener('change', toggle);
         }
         btn.style.display = input.value.trim() !== '' ? 'block' : 'none';
+    });
+};
+
+window.showRecipeDropdown = function(dropdownId, inputId, assetType = 'blocks') {
+    const dropdown = document.getElementById(dropdownId);
+    const input = document.getElementById(inputId);
+    if (!dropdown || !input) return;
+
+    dropdown.innerHTML = '';
+    dropdown.style.display = 'block';
+
+    let itemsPool = [];
+    if (window.projectData) {
+        if (window.projectData.blocks) itemsPool.push(...window.projectData.blocks.map(b => ({ name: b.id, source: 'custom' })));
+        if (window.projectData.items) itemsPool.push(...window.projectData.items.map(i => ({ name: i.id, source: 'custom' })));
+    }
+
+    if (window.serverTextures) {
+        itemsPool.push(...window.serverTextures.map(t => ({ name: t.name, source: 'vanilla' })));
+    }
+
+    const uniquePool = Array.from(new Map(itemsPool.map(item => [item.name, item])).values());
+
+    uniquePool.forEach(item => {
+        if (!item.name || item.name.startsWith('music/') || item.name.includes('sound') || item.name.startsWith('musicModels/')) {
+            return;
+        }
+
+        const opt = document.createElement('div');
+        opt.className = 'dropdown-option';
+        opt.style = 'padding: 6px 12px; cursor: pointer; color: #fff; background: #1e1e1e;';
+        opt.textContent = item.name;
+
+        opt.onmousedown = (e) => {
+            e.preventDefault();
+            input.value = item.name;
+            dropdown.style.display = 'none';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            if (typeof window.initDropdownClearButtons === 'function') window.initDropdownClearButtons();
+        };
+
+            dropdown.appendChild(opt);
+    });
+
+    window.filterDropdown(inputId, dropdownId);
+};
+
+window.filterDropdown = function(inputId, dropdownId) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+    if (!input || !dropdown) return;
+
+    const query = input.value.trim().toLowerCase();
+    const options = dropdown.querySelectorAll('.dropdown-option');
+
+    options.forEach(opt => {
+        const txt = opt.textContent.toLowerCase();
+        opt.style.display = txt.includes(query) ? 'block' : 'none';
     });
 };
 
