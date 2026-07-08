@@ -615,6 +615,43 @@ window.handleCustomEntityTexture = async function(inputElement, targetSearchId) 
     }
 };
 
+window.handleCustomBlockTexture = async function(inputElement, targetSearchId) {
+    if (inputElement.files?.[0]) {
+        const file = inputElement.files[0];
+        const name = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9_]/g, "");
+
+        const url = await new Promise(r => {
+            const rd = new FileReader();
+            rd.onloadend = () => r(rd.result);
+            rd.readAsDataURL(file);
+        });
+
+        const textureObject = {
+            name: name,
+            dataUrl: url,
+            isCustom: true,
+            isBlockType: true,
+            isEntityType: false,
+            isParticleType: false,
+            rawFile: file
+        };
+
+        window.serverTextures.unshift(textureObject);
+        if (window.blockTexturesOnly) window.blockTexturesOnly.unshift(textureObject);
+
+        const inputField = document.getElementById(targetSearchId);
+        if (inputField) {
+            inputField.value = name;
+            inputField.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (typeof window.updateBlockFacePreviews === 'function') window.updateBlockFacePreviews();
+        if (typeof window.rebuildDropdowns === 'function') window.rebuildDropdowns();
+        window.markFormAsDirty();
+    }
+};
+window.handleCustomTexture = window.handleCustomBlockTexture;
+
 window.addStructureRow = function(savedData = null) {
     const container = document.getElementById('biomeStructuresContainer');
     if (!container) return;

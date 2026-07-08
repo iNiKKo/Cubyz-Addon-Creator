@@ -256,7 +256,7 @@
             <label for="itemIconSearch">2D Inventory Icon Texture</label>
             <input type="text" id="itemIconSearch" autocomplete="off" placeholder="Search item textures..." onfocus="showDropdown('itemIconDropdown')" oninput="filterDropdown('itemIconSearch', 'itemIconDropdown')">
             <div id="itemIconDropdown" class="dropdown-options" style="display: none; position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: #1e1e1e; border: 1px solid #3c3c3c; z-index: 1000;"></div>
-            <label class="file-input-label" style="display: block; margin-top: 5px; cursor: pointer; color: #3794ff;">+ Add custom PNG <input type="file" accept=".png" style="display:none" onchange="window.handleCustomTexture(this, 'itemIconSearch')"></label>
+            <label class="file-input-label" style="display: block; margin-top: 5px; cursor: pointer; color: #3794ff;">+ Add custom PNG <input type="file" accept=".png" onchange="window.handleCustomBlockTexture(this, 'topSearch')">
         </div>
     </div>
 
